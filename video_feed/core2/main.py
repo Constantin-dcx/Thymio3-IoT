@@ -2,7 +2,7 @@ import urequests
 import M5
 
 
-UNITV2_IP = "192.168.1.113"
+UNITV2_IP = "192.168.1.114"
 
 
 def parse_multipart_stream(response, boundary):
