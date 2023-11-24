@@ -18,7 +18,7 @@ acc_z = None
 
 # MQTT Credentials
 MQTT_CLIENT_ID = 'core2_client'
-MQTT_BROKER = '192.168.1.102'
+MQTT_BROKER = '192.168.1.101'
 MQTT_PORT = 1883
 IMU_TOPIC = 'core2/IMU'
 

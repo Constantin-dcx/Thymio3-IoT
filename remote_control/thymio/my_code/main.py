@@ -6,7 +6,7 @@ from umqtt.simple import MQTTClient
 
 # MQTT Credentials
 MQTT_CLIENT_ID = 'thymio_client'
-MQTT_BROKER = '192.168.1.102'
+MQTT_BROKER = '192.168.1.101'
 MQTT_PORT = 1883
 MQTT_TOPIC = 'test/topic'
 IMU_TOPIC = "core2/IMU"
