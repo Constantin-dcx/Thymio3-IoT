@@ -4,23 +4,18 @@ import time
 import json
 from umqtt.simple import MQTTClient
 
+from config import *
+
 label3 = None
 line0 = None
 label4 = None
 line1 = None
 label5 = None
 
-
 acc_x = None
 acc_y = None
 acc_z = None
 
-
-# MQTT Credentials
-MQTT_CLIENT_ID = 'core2_client'
-MQTT_BROKER = '192.168.1.101'
-MQTT_PORT = 1883
-IMU_TOPIC = 'core2/IMU'
 
 client = None
 last_time = 0
@@ -40,9 +35,10 @@ def setup():
   label5 = Widgets.Label("label", 166, 95, 1.0, 0xffffff, 0x222222, Widgets.FONTS.DejaVu18)
 
   # Connect to MQTT
-  client = MQTTClient(MQTT_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
+  client = MQTTClient(CORE2_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
   client.connect()
   print(f'Successfully connected to MQTT broker {MQTT_BROKER}:{MQTT_PORT}')
+
 
 def loop():
   global label3, line0, label4, line1, label5, acc_x, acc_y, acc_z, last_time, client
@@ -65,15 +61,11 @@ def loop():
     last_time = time.ticks_ms()
 
 
-
 if __name__ == '__main__':
   try:
     setup()
     while True:
       loop()
   except (Exception, KeyboardInterrupt) as e:
-    try:
-      from utility import print_error_msg
-      print_error_msg(e)
-    except ImportError:
-      print("please update to latest firmware")
+    from utility import print_error_msg
+    print_error_msg(e)

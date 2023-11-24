@@ -3,19 +3,12 @@ import thymio
 import json
 import time
 from umqtt.simple import MQTTClient
-
-# MQTT Credentials
-MQTT_CLIENT_ID = 'thymio_client'
-MQTT_BROKER = '192.168.1.101'
-MQTT_PORT = 1883
-MQTT_TOPIC = 'test/topic'
-IMU_TOPIC = "core2/IMU"
-
-thymio.disable_behaviors()
-leds = [LEDS_CIRCLE(i) for i in range(8)]
+from config import *
 
 ACC_THRESHOLD = 0.1
 
+thymio.disable_behaviors()
+leds = [LEDS_CIRCLE(i) for i in range(8)]
 
 def mqtt_callback(topic, msg):
     topic_str = topic.decode()
@@ -45,12 +38,13 @@ def mqtt_callback(topic, msg):
 def connect_to_mqtt():
     global client
 
-    client = MQTTClient(MQTT_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
-    client.set_callback(mqtt_callback)
+    client = MQTTClient(THYMIO_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
+
+    if mqtt_callback is not None:
+        client.set_callback(mqtt_callback)
+
     client.connect()
     print(f'Successfully connected to MQTT broker {MQTT_BROKER}:{MQTT_PORT}')
-    client.subscribe(MQTT_TOPIC)
-    print(f'Subscribed to topic {MQTT_TOPIC}')
     client.subscribe(IMU_TOPIC)
     print(f'Subscribed to topic {IMU_TOPIC}')
 
