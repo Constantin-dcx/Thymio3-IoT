@@ -6,7 +6,7 @@ wifi_credentials = [
     # {"ssid": "my ssid 2", "password": "my password 2"},
 ]
 
-def connect():
+def connect(verbose=False):
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     networks = wlan.scan()
@@ -20,6 +20,10 @@ def connect():
             while wlan.ifconfig()[0] == '0.0.0.0':
                 pass
             print(f'Successfully connected to WiFi network "{ssid}".')
+
+            if verbose:
+                print(f"{wlan.ifconfig()=}")
+
             return True
         else:
             print(f'WiFi network "{ssid}" is not available.')
