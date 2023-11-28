@@ -36,8 +36,9 @@ def setup():
 
   # Connect to MQTT
   client = MQTTClient(CORE2_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
+  print(f'Connecting to MQTT broker {MQTT_BROKER}:{MQTT_PORT} ...')
   client.connect()
-  print(f'Successfully connected to MQTT broker {MQTT_BROKER}:{MQTT_PORT}')
+  print('Successfully connected to MQTT broker !')
 
 
 def loop():
