@@ -27,11 +27,13 @@ BLACK = (0, 0, 0)
 # Global variables
 t = 0
 screen = None
+clock = None
 current_x = WIDTH // 2
 current_y = HEIGHT // 2
 
 def setup():
     global screen, clock
+
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Animated Eyes")
@@ -42,19 +44,19 @@ def setup():
 def draw_eyes(x, y):
     global screen, clock
 
-    screen.fill(WHITE)  # Fill the screen with white
+    screen.fill(BLACK)  # Fill the screen with black
     
     # Draw eyes
     x_left = x - EYE_DISTANCE // 2
     x_right = x + EYE_DISTANCE // 2
-    pygame.draw.circle(screen, BLACK, (x_left, y), EYE_RADIUS)
-    pygame.draw.circle(screen, BLACK, (x_right, y), EYE_RADIUS)
+    pygame.draw.circle(screen, WHITE, (x_left, y), EYE_RADIUS)
+    pygame.draw.circle(screen, WHITE, (x_right, y), EYE_RADIUS)
     
     # Draw pupils
     x_p = (x - WIDTH // 2) / MAX_WIDTH * EYE_RADIUS
     y_p = (y - HEIGHT // 2) / MAX_HEIGHT * EYE_RADIUS
-    pygame.draw.circle(screen, WHITE, (x_left + x_p, y + y_p), PUPIL_RADIUS)
-    pygame.draw.circle(screen, WHITE, (x_right + x_p, y + y_p), PUPIL_RADIUS)
+    pygame.draw.circle(screen, BLACK, (x_left + x_p, y + y_p), PUPIL_RADIUS)
+    pygame.draw.circle(screen, BLACK, (x_right + x_p, y + y_p), PUPIL_RADIUS)
     
     pygame.display.flip()
     clock.tick(FPS)
