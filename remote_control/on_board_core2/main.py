@@ -1,10 +1,12 @@
-import json
 import M5
 import time
 from catch_unit import CatchUnit
 from config import *
 from M5 import Widgets
 from umqtt.simple import MQTTClient
+
+
+REFRESH_TIME = 0.01
 
 # Colors
 BLACK = 0x000000
@@ -41,7 +43,7 @@ def open_gripper():
   label_status.setCursor(x=57, y=TEXT_HEIGHT)
   gripper.open()
 
-
+  client.publish(GRIPPER_STATUS, GRIPPER_FINISHED)
   label_status.setText("Open!")
   label_status.setCursor(x=98, y=TEXT_HEIGHT)
 
@@ -86,9 +88,9 @@ def loop():
   global client, gripper
 
   M5.update()
-
   client.check_msg()
-  # time.sleep(0.01)
+  
+  time.sleep(REFRESH_TIME)
 
 
 
