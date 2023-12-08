@@ -47,6 +47,7 @@ def setup():
   print(f'Connecting to MQTT broker {MQTT_BROKER}:{MQTT_PORT} ...')
   client.set_callback(mqtt_callback)
   client.connect()
+  wifi_image = Widgets.Image("img/wifi.png", 300, 0)
   print('Successfully connected to MQTT broker !')
   client.subscribe(GRIPPER_STATUS)
 

@@ -28,6 +28,7 @@ def setup():
 
   label_status = Widgets.Label("Connecting...", 28, TEXT_HEIGHT, 1.0, WHITE, BLACK, Widgets.FONTS.DejaVu40)
   connect_to_mqtt()
+  wifi_image = Widgets.Image("img/wifi.png", 300, 0)
   label_status.setText("Connected!")
   label_status.setCursor(x=45, y=TEXT_HEIGHT)
 
