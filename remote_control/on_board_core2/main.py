@@ -35,7 +35,7 @@ def setup():
 
 
 def open_gripper():
-  global gripper, label_status
+  global gripper, label_status, client
   label_status.setText("Opening...")
   label_status.setCursor(x=57, y=TEXT_HEIGHT)
   gripper.open()
@@ -45,10 +45,12 @@ def open_gripper():
   label_status.setCursor(x=98, y=TEXT_HEIGHT)
 
 def close_gripper():
-  global gripper, label_status
+  global gripper, label_status, client
   label_status.setText("Closing...")
   label_status.setCursor(x=68, y=TEXT_HEIGHT)
   gripper.close()
+
+  client.publish(GRIPPER_STATUS, GRIPPER_FINISHED)
   label_status.setText("Closed!")
   label_status.setCursor(x=85, y=TEXT_HEIGHT)
 
@@ -56,15 +58,12 @@ def close_gripper():
 def mqtt_callback(topic, msg):
 
     topic_str = topic.decode()
-    msg_decoded = msg.decode()
-    # print(f"New message on topic '{topic_str}': {msg_decoded}")
+    # print(f"New message on topic '{topic_str}': {msg}")
     
-    if topic_str == GRIPPER_TOPIC:
-      action = json.loads(msg_decoded)
-
-      if action == GRIPPER_CLOSE:
+    if topic_str == GRIPPER_ACTION:
+      if msg == GRIPPER_CLOSE:
         close_gripper()
-      elif action == GRIPPER_OPEN:
+      elif msg == GRIPPER_OPEN:
         open_gripper()
 
 
@@ -78,12 +77,12 @@ def connect_to_mqtt():
     client.connect()
     print('Successfully connected to MQTT broker !')
 
-    client.subscribe(GRIPPER_TOPIC)
-    print(f'Subscribed to topic {GRIPPER_TOPIC}')
+    client.subscribe(GRIPPER_ACTION)
+    print(f'Subscribed to topic {GRIPPER_ACTION}')
 
 
 def loop():
-  global client
+  global client, gripper
 
   M5.update()
 
@@ -102,3 +101,5 @@ if __name__ == '__main__':
     print_error_msg(e)
   finally:
     client.disconnect()
+
+    gripper.open()
