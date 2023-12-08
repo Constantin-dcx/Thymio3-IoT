@@ -3,18 +3,11 @@ import time
 from machine import Pin, PWM
 from M5 import Widgets, BtnA, BtnC
 
-
+# Servo commands parameters
 SERVO_PIN = 32
 FREQ = 50
-# MIN_ANGLE, MAX_ANGLE = 0, 180
-# RESOLUTION = 1024
-
-# MIN_PULSE_MS, MAX_PULSE_MS = 1, 2
-# MIN_DUTY = int(MIN_PULSE_MS / 1000 * FREQ * RESOLUTION)
-# MAX_DUTY = int(MAX_PULSE_MS / 1000 * FREQ * RESOLUTION)
 MIN_DUTY = 33
 MAX_DUTY = 88
-
 PULSE_DELAY = 0.025
 STEP = 1
 
@@ -25,7 +18,7 @@ servo = None
 last_pulse = MIN_DUTY
 
 
-BG_COLOR = 0x222222
+BG_COLOR = 0x000000  # BLACK
 WHITE = 0xffffff
 GREY = 0x666666
 
@@ -36,7 +29,7 @@ def setup():
   M5.begin()
   Widgets.fillScreen(BG_COLOR)
   label_close = Widgets.Label("Close", 20, 200, 1.0, WHITE, BG_COLOR, Widgets.FONTS.DejaVu24)
-  label_open = Widgets.Label("Open", 220, 200, 1.0, WHITE, BG_COLOR, Widgets.FONTS.DejaVu24)
+  label_open = Widgets.Label("Open", 225, 200, 1.0, WHITE, BG_COLOR, Widgets.FONTS.DejaVu24)
 
 
 def set_pulse(pulse: int):
