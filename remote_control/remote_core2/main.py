@@ -97,13 +97,18 @@ def mqtt_callback(topic, msg):
       is_gripper_finished = True
 
 def wait_for_gripper_finished( timeout_ms: int = 5_000):
+
+  # Stop Thymio while gripper is moving
+  message = {"x": 0.0, "y": 0.0, "z": 0.0}
+  msg_json = json.dumps(message)
+  client.publish(IMU_TOPIC, msg_json)
+
   start_time = time.ticks_ms()
 
   while not is_gripper_finished:
     if time.ticks_diff(time.ticks_ms(), start_time) > timeout_ms:
       print(f"ERROR: Gripper command timed out in {timeout_ms} ms. Command aborted.")
       print("ERROR: Please make sure the on-board Core2 is online.")
-
       break
     
     client.check_msg()
