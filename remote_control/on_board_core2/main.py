@@ -104,5 +104,3 @@ if __name__ == '__main__':
     print_error_msg(e)
   finally:
     client.disconnect()
-
-    gripper.open()

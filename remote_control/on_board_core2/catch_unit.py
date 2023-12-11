@@ -1,3 +1,4 @@
+import json
 import time
 from machine import Pin, PWM
 
@@ -5,19 +6,19 @@ from machine import Pin, PWM
 class CatchUnit:
   SERVO_PIN = 32
   FREQ = 50
+  LAST_PULSE_FILE = "servo_position.json"
 
-  def __init__(self, min_pulse: int = 33, max_pulse: int = 88, 
+  def __init__(self, min_pulse: int = 26, max_pulse: int = 90, 
                pulse_delay: float = 0.025, step: int = 1) -> None:
     
     self._min_pulse = min_pulse
     self._max_pulse = max_pulse
     self._pulse_delay = pulse_delay
     self._step = step
-    self.last_pulse = self._min_pulse
-
+    self._load_last_pulse()
     self._servo = PWM(Pin(self.SERVO_PIN), self.FREQ)
+
     print("CatchUnit initiated.")
-    print("\nWARNING: Please make sur the gripper is fully opened.")
 
   def open(self, delay: int = None, step: int = None):
     print("Opening...")
@@ -40,6 +41,24 @@ class CatchUnit:
       self._set_pulse(pulse)
       time.sleep(delay)
 
+    self._save_last_pulse()
+
   def _set_pulse(self, pulse: int):
     self._servo.duty(pulse)
     self.last_pulse = pulse
+
+  def _save_last_pulse(self):
+    data = {"pulse": self.last_pulse}
+    with open(self.LAST_PULSE_FILE, "w") as f:
+      json.dump(data, f)
+
+  def _load_last_pulse(self):
+    try:
+      with open(self.LAST_PULSE_FILE, "r") as f:
+        data = json.load(f)
+        self.last_pulse = data["pulse"]
+        print(f"Found last pulse: {self.last_pulse}")
+    except (OSError, ValueError) as error:
+      print(f"\nERROR: Could not find last pulse in {self.LAST_PULSE_FILE}: {error}")
+      print("ERROR: Please make sur the gripper is fully opened.")
+      self.last_pulse = self._min_pulse
