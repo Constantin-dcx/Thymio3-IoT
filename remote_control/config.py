@@ -1,5 +1,5 @@
 # MQTT Credentials
-MQTT_BROKER = '192.168.1.100'
+MQTT_BROKER = '192.168.1.104'
 MQTT_PORT = 1883
 
 # MQTT Topics
