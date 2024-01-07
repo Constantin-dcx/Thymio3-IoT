@@ -4,12 +4,13 @@ import math
 import M5
 import random
 import time
+from config import *
+from umqtt.simple import MQTTClient
 
 
 # Resolution
 CAMERA_WIDTH, CAMERA_HEIGHT = 640, 480
 WIDTH, HEIGHT = 320, 240
-FPS = 15
 
 # Smoothing
 THRESHOLD = 5
@@ -33,6 +34,7 @@ PROTOCOL_START = b'{'[0]
 # Detection thresholds
 PERSON_THRESHOLD = 0.9
 FACE_THRESHOLD = 0.9
+DETECTION_TIMEOUT_MS = 500
 
 # Global variables
 t = 0
@@ -40,13 +42,24 @@ current_x = WIDTH // 2
 current_y = HEIGHT // 2
 canvas = None
 uart = None
+client = None
+last_time = 0
+detection_status = 'not_found'
 
 
 def setup():
-    global canvas, uart
+    global canvas, uart, client
 
     M5.begin()
+
+    # Connect to MQTT
+    client = MQTTClient(TRACKING_REMOTE_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
+    print(f'Connecting to MQTT broker {MQTT_BROKER}:{MQTT_PORT} ...')
+    client.connect()
+    print('Successfully connected to MQTT broker !')
+
     canvas = M5.Display.newCanvas(WIDTH, HEIGHT, 1, 1)
+    draw_eyes(WIDTH//2, HEIGHT//2)
 
     # Start serial communication
     uart = machine.UART(1, tx=32, rx=33) # PORT A
@@ -75,26 +88,26 @@ def draw_eyes(x, y):
     # Erase stuff
     canvas.clear()
 
-def old_track_object():
-    # global t
+def could_not_find_object():
+    global t
 
-    # f = 0.02
-    # x = (1 + math.cos(2 * math.pi * t * f)) * CAMERA_WIDTH // 2
-    # y = (1 + math.sin(2 * math.pi * t * f)) * CAMERA_HEIGHT // 2
-    # t = t + 1
+    f = 0.02
+    x = (1 + math.cos(2 * math.pi * t * f)) * CAMERA_WIDTH // 2
+    y = (1 + math.sin(2 * math.pi * t * f)) * CAMERA_HEIGHT // 2
+    t = t + 1
 
-    x = int(random.random() * CAMERA_WIDTH)
-    y = int(random.random() * CAMERA_HEIGHT)
+    # # Random
+    # x = int(random.random() * CAMERA_WIDTH)
+    # y = int(random.random() * CAMERA_HEIGHT)
 
     # print(f"Object found at ({x}, {y})!")
-    return x, y
+    return compute_eyes_position(x, y)
 
 
 def compute_eyes_position(x, y):
     x = int(EYE_DISTANCE // 2 + EYE_RADIUS + x * MAX_WIDTH / CAMERA_WIDTH)
     y = int(EYE_RADIUS + y * MAX_HEIGHT / CAMERA_HEIGHT)
 
-    # print(f"Goal position: ({x}, {y})!")
     return x, y
 
 
@@ -130,7 +143,10 @@ def find_best_person(persons_list: list):
         return best_person
      
     for person in persons_list[1:]:
-        if person["prob"] > best_person["prob"]:
+        # if person["prob"] > best_person["prob"]:
+
+        # select widest face
+        if person["w"]*person["h"] > best_person["w"]*best_person["h"]:
             best_person = person
 
     return best_person
@@ -176,12 +192,11 @@ def compute_rectangle(result, mode: str = "Face Detector") -> Rectangle:
 
 
 def track_object() -> Rectangle:
-    global uart
+    global uart, detection_status
 
     # Read UnitV2 serial data    
     if not uart.any():
         return
-    # time.sleep(0.2)
 
     data = uart.readline()
     if data is None or data[0] != PROTOCOL_START:
@@ -191,19 +206,39 @@ def track_object() -> Rectangle:
     try:
         result = json.loads(data)
     except ValueError as err:
-        print(f'Warning: Could not decode json data: \n{data}')
+        print(f'WARNING: Could not decode json data: \n{data}')
         return
+
+    detection_status = 'found'
 
     return compute_rectangle(result)
 
 
 def loop():
+    global client, last_time, detection_status
     M5.update()
 
     # Get the object coordinates
     rect = track_object()
+
     if rect is None:
+        # If no result received in DETECTION_TIMEOUT_MS, stop moving
+        if time.ticks_diff(time.ticks_ms(), last_time) > DETECTION_TIMEOUT_MS:
+            client.publish(CAMERA_DETECT_TOPIC, FACE_NOT_FOUND)
+            last_time = time.ticks_ms()
+            detection_status = 'not_found'
+
+        if detection_status == 'not_found':
+            # Draw 'lost' eyes
+            update_position(*could_not_find_object())
+
         return
+    
+    last_time = time.ticks_ms()
+
+    message = {"x": rect.x, "y": rect.y, "w": rect.w, "h": rect.h}
+    msg_json = json.dumps(message)
+    client.publish(CAMERA_DETECT_TOPIC, msg_json)
     
     eye_x, eye_y = compute_eyes_position(rect.x, rect.y)
     
