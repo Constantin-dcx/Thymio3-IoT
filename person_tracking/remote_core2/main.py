@@ -26,7 +26,7 @@ def setup():
 
 
 def get_unitv2_ip(retry_interval_ms = 5_000):
-    global client
+    global client, unitv2_ip
 
     client.publish(CAMERA_IP_GET_TOPIC, "")
 
