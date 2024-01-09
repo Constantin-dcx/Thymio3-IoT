@@ -5,6 +5,8 @@ MQTT_PORT = 1883
 # MQTT Topics
 # tracking
 CAMERA_DETECT_TOPIC = "camera/detect"
+CAMERA_IP_GET_TOPIC = "camera/ip/get"
+CAMERA_IP_POST_TOPIC = "camera/ip/post"
 # gripper
 IMU_TOPIC = "core2/IMU"
 GRIPPER_ACTION = "gripper/action"
@@ -25,5 +27,5 @@ GRIPPER_OPEN = b'gripper_open'
 GRIPPER_BUSY = b'gripper_busy'
 GRIPPER_FINISHED = b'gripper_finished'
 
-# Camera commands
+# Camera Commands
 FACE_NOT_FOUND = 'face_not_found'

@@ -30,11 +30,16 @@ BLACK = 0x000000
 
 # UART
 PROTOCOL_START = b'{'[0]
+GET_IP_TIMEOUT_MS = 5_000
 
 # Detection thresholds
 PERSON_THRESHOLD = 0.9
 FACE_THRESHOLD = 0.9
 DETECTION_TIMEOUT_MS = 500
+
+class DetectionStatus:
+    FOUND = "FOUND"
+    NOT_FOUND = "NOT_FOUND"
 
 # Global variables
 t = 0
@@ -44,7 +49,8 @@ canvas = None
 uart = None
 client = None
 last_time = 0
-detection_status = 'not_found'
+detection_status = DetectionStatus.NOT_FOUND
+update_unitv2_ip = False
 
 
 def setup():
@@ -52,19 +58,37 @@ def setup():
 
     M5.begin()
 
-    # Connect to MQTT
-    client = MQTTClient(TRACKING_REMOTE_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
-    print(f'Connecting to MQTT broker {MQTT_BROKER}:{MQTT_PORT} ...')
-    client.connect()
-    print('Successfully connected to MQTT broker !')
-
     canvas = M5.Display.newCanvas(WIDTH, HEIGHT, 1, 1)
     draw_eyes(WIDTH//2, HEIGHT//2)
 
     # Start serial communication
     uart = machine.UART(1, tx=32, rx=33) # PORT A
-    # uart = machine.UART(1, tx=14, rx=13) # PORT C
+    # uart = machine.UART(1, tx=14, rx=13) # PORT C with DIN Base
     uart.init(115200, bits=8, parity=None, stop=1)
+
+    # Connect to MQTT
+    client = MQTTClient(TRACKING_ON_BOARD_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
+    client.set_callback(mqtt_callback)
+    print(f'Connecting to MQTT broker {MQTT_BROKER}:{MQTT_PORT} ...')
+    client.connect()
+    print('Successfully connected to MQTT broker !')
+    client.subscribe(CAMERA_IP_GET_TOPIC)
+
+
+def mqtt_callback(topic, msg):
+    topic_str = topic.decode()
+    msg_decoded = msg.decode()
+
+    print(f"DEBUG: New message on topic '{topic_str}': {msg_decoded}")
+    
+    if topic_str == CAMERA_IP_GET_TOPIC:
+        get_unitv2_ip()
+
+
+def get_unitv2_ip():
+    global uart
+
+    uart.write("{\"get_ip\": \"\"}\r\n")
 
 
 def draw_eyes(x, y):
@@ -100,7 +124,6 @@ def could_not_find_object():
     # x = int(random.random() * CAMERA_WIDTH)
     # y = int(random.random() * CAMERA_HEIGHT)
 
-    # print(f"Object found at ({x}, {y})!")
     return compute_eyes_position(x, y)
 
 
@@ -143,8 +166,6 @@ def find_best_person(persons_list: list):
         return best_person
      
     for person in persons_list[1:]:
-        # if person["prob"] > best_person["prob"]:
-
         # select widest face
         if person["w"]*person["h"] > best_person["w"]*best_person["h"]:
             best_person = person
@@ -161,8 +182,9 @@ def compute_rectangle(result, mode: str = "Face Detector") -> Rectangle:
             print(f"ERROR: UnitV2 is running '{running_function}'. Expected '{mode}'.")
             return
         
+        # Not so good
         if mode == "Object Recognition":
-            # Get the persons found in the image
+            # Get the persons found in the image with probability > PERSON_THRESHOLD
             persons_found = list()
             for object in result["obj"]:
                 if object["type"] == "person" and object["prob"] > PERSON_THRESHOLD:
@@ -173,16 +195,8 @@ def compute_rectangle(result, mode: str = "Face Detector") -> Rectangle:
             
             best_object = find_best_person(persons_found)
         
-        elif mode == "Face Detector":
-            # Get the faces found in the image
-            faces_found = list()
-            for object in result["face"]:
-                if object["prob"] > FACE_THRESHOLD:
-                    faces_found.append(object)
-
-            if not faces_found:
-                return
-        
+        elif mode == "Face Detector":            
+            faces_found = result["face"]
             best_object = find_best_person(faces_found)
 
         return Rectangle(best_object)
@@ -191,10 +205,9 @@ def compute_rectangle(result, mode: str = "Face Detector") -> Rectangle:
         print(f"ERROR: Could not parse results:\n{result} \nKeyError: {err}.")
 
 
-def track_object() -> Rectangle:
-    global uart, detection_status
-
-    # Read UnitV2 serial data    
+def read_serial():
+    global uart
+ 
     if not uart.any():
         return
 
@@ -204,38 +217,50 @@ def track_object() -> Rectangle:
 
     # Decode json data
     try:
-        result = json.loads(data)
-    except ValueError as err:
+        data_decoded = json.loads(data)
+        return data_decoded
+    except ValueError:
         print(f'WARNING: Could not decode json data: \n{data}')
         return
-
-    detection_status = 'found'
-
-    return compute_rectangle(result)
 
 
 def loop():
     global client, last_time, detection_status
     M5.update()
+    client.check_msg()
 
-    # Get the object coordinates
-    rect = track_object()
+    rect = None
+
+    # Receive data from UnitV2
+    data = read_serial()
+    if data is not None:
+
+        if "ip" in data:
+            # Communicate UnitV2 ip to remote Core2
+            ip_address = data["ip"]
+            print(f"UnitV2 IP adress: '{ip_address}'")
+            client.publish(CAMERA_IP_POST_TOPIC, ip_address)
+
+        if "running" in data:
+            rect = compute_rectangle(data)
 
     if rect is None:
-        # If no result received in DETECTION_TIMEOUT_MS, stop moving
+        # If no result received in DETECTION_TIMEOUT_MS, stop Thymio3
         if time.ticks_diff(time.ticks_ms(), last_time) > DETECTION_TIMEOUT_MS:
             client.publish(CAMERA_DETECT_TOPIC, FACE_NOT_FOUND)
             last_time = time.ticks_ms()
-            detection_status = 'not_found'
+            detection_status = DetectionStatus.NOT_FOUND
 
-        if detection_status == 'not_found':
-            # Draw 'lost' eyes
+        # Draw 'lost' eyes
+        if detection_status == DetectionStatus.NOT_FOUND:
             update_position(*could_not_find_object())
 
         return
     
     last_time = time.ticks_ms()
+    detection_status = DetectionStatus.FOUND
 
+    # Send rectangle coordinates to Thymio3
     message = {"x": rect.x, "y": rect.y, "w": rect.w, "h": rect.h}
     msg_json = json.dumps(message)
     client.publish(CAMERA_DETECT_TOPIC, msg_json)
@@ -244,17 +269,19 @@ def loop():
     
     # Update the eyes
     update_position(eye_x, eye_y)
-    # draw_eyes(eye_x, eye_y)
+    # draw_eyes(eye_x, eye_y)  # Faster but no smoothing
+
+    time.sleep(0.01)
 
 
 if __name__ == '__main__':
-  try:
-    setup()
-    while True:
-      loop()
-  except (Exception, KeyboardInterrupt) as e:
-    from utility import print_error_msg
-    print_error_msg(e)
+    try:
+        setup()
+        while True:
+            loop()
+    except (Exception, KeyboardInterrupt) as e:
+        from utility import print_error_msg
+        print_error_msg(e)
 
-    if canvas:
-       canvas.delete()
+        if canvas:
+            canvas.delete()
