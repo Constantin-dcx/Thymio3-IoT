@@ -2,7 +2,7 @@ import network
 
 # WiFi Credentials, in order of priority
 wifi_credentials = [
-    {"ssid": "Constantin_AP_2.4G", "password": "mobots1234"},
+    {"ssid": "my ssid 1", "password": "my password 2"},
     # {"ssid": "my ssid 2", "password": "my password 2"},
 ]
 
