@@ -218,6 +218,13 @@ class SerialRX(serial.threaded.LineReader):
                     return
                 process.stdin.write((json.dumps(doc) + "\r\n").encode('utf-8'))
                 process.stdin.flush()
+            if 'get_ip' in doc:
+                ip_address = get_ip_address()
+                if ip_address is not None:
+                    logger.info(f"IP address is: '{ip_address}'")
+                    protocol.write(("{\"ip\": \"" + ip_address +"\"}\r\n").encode('utf-8'))
+                else:
+                    logger.error("Could not get ip address")
             else:
                 logger.warning('Command is not supported')
                 protocol.write("{\"error\":\"Command is not supported\"}\r\n".encode('utf-8'))
@@ -766,6 +773,28 @@ def checkFolder(path):
     if not os.path.exists(path):
         os.mkdir(path)
 
+def get_ip_address():
+    max_retries = 10
+    retry_interval = 3  # seconds
+
+    for _ in range(max_retries):
+        try:
+            # Run the shell command to get the IP address
+            result = subprocess.run(['ip', 'route', 'get', '8.8.8.8'], capture_output=True, text=True)
+
+            # Parse the output to extract the IP address
+            ip_address = result.stdout.split(' ')[-2]
+
+            return ip_address
+        except Exception as e:
+            logger.info(f"Error getting IP address: {e}")
+            logger.info(f"Got: {result.stdout}")
+            logger.info("Retrying in {} seconds...".format(retry_interval))
+            time.sleep(retry_interval)
+
+    logger.error("Max retries reached. Unable to get IP address.")
+    return None
+
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -830,13 +859,12 @@ if __name__ == '__main__':
     try:
         process = subprocess.Popen(sys.argv[1], stdout=subprocess.PIPE, stdin=subprocess.PIPE, close_fds = True, bufsize = 1)
     except:
-        logger.info('Wait for process to start')
-        pass
         # Try to start the default function set by the user
-        # try:
-        #     process = subprocess.Popen('./bin/' + system_config_doc['boot_func'], stdout=subprocess.PIPE, stdin=subprocess.PIPE, close_fds = True, bufsize = 1)
-        # except:
-        #     process = subprocess.Popen('./bin/camera_stream', stdout=subprocess.PIPE, stdin=subprocess.PIPE, close_fds = True, bufsize = 1)
+        try:
+            process = subprocess.Popen('./bin/' + system_config_doc['boot_func'], stdout=subprocess.PIPE, stdin=subprocess.PIPE, close_fds = True, bufsize = 1)
+        except:
+            # process = subprocess.Popen('./bin/camera_stream', stdout=subprocess.PIPE, stdin=subprocess.PIPE, close_fds = True, bufsize = 1)
+            logger.info('Wait for process to start')
 
     # if client_is_connected is True:
     #     process.stdin.write("_{\"stream\":1}\r\n".encode('utf-8')) # '_' means parse by framework, otherwise parse by program
