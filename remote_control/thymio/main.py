@@ -9,7 +9,6 @@ ACC_THRESHOLD = 0.1
 MAX_ACC = 1.0
 MAX_SPEED = 750
 
-thymio.disable_behaviors()
 leds = [thymio.LEDS_CIRCLE(i) for i in range(8)]
 motors = thymio.MOTORS()
 
