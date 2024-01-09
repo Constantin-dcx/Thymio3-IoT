@@ -30,7 +30,7 @@ def setup():
 
   label_status = Widgets.Label("Connecting...", 28, TEXT_HEIGHT, 1.0, WHITE, BLACK, Widgets.FONTS.DejaVu40)
   connect_to_mqtt()
-  wifi_image = Widgets.Image("img/wifi.png", 300, 0)
+  Widgets.Image("img/wifi.png", 300, 0)
   label_status.setText("Connected!")
   label_status.setCursor(x=45, y=TEXT_HEIGHT)
 
@@ -73,7 +73,7 @@ def mqtt_callback(topic, msg):
 def connect_to_mqtt():
     global client
     
-    client = MQTTClient(ON_BOARD_CORE2_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
+    client = MQTTClient(GRIPPER_ON_BOARD_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
     print(f'Connecting to MQTT broker {MQTT_BROKER}:{MQTT_PORT} ...')
 
     client.set_callback(mqtt_callback)

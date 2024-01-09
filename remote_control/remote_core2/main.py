@@ -1,5 +1,4 @@
 import json
-import math
 import M5
 import time
 from config import *
@@ -43,11 +42,11 @@ def setup():
   Widgets.fillScreen(BLACK)
 
   # Connect to MQTT
-  client = MQTTClient(REMOTE_CORE2_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
+  client = MQTTClient(GRIPPER_REMOTE_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
   print(f'Connecting to MQTT broker {MQTT_BROKER}:{MQTT_PORT} ...')
   client.set_callback(mqtt_callback)
   client.connect()
-  wifi_image = Widgets.Image("img/wifi.png", 300, 0)
+  Widgets.Image("img/wifi.png", 300, 0)
   print('Successfully connected to MQTT broker !')
   client.subscribe(GRIPPER_STATUS)
 
@@ -84,17 +83,17 @@ def loop():
     message = {"x": acc_x, "y": acc_y, "z": acc_z}
     msg_json = json.dumps(message)
     client.publish(IMU_TOPIC, msg_json)
-    # print("Message sent:", message)
     last_time = time.ticks_ms()
 
   handle_buttons()
+
 
 def mqtt_callback(topic, msg):
   global is_gripper_finished
   if topic.decode() == GRIPPER_STATUS:
     if msg == GRIPPER_FINISHED:
-      # print("Gripper Finished!")
       is_gripper_finished = True
+
 
 def wait_for_gripper_finished( timeout_ms: int = 5_000):
 
@@ -104,7 +103,6 @@ def wait_for_gripper_finished( timeout_ms: int = 5_000):
   client.publish(IMU_TOPIC, msg_json)
 
   start_time = time.ticks_ms()
-
   while not is_gripper_finished:
     if time.ticks_diff(time.ticks_ms(), start_time) > timeout_ms:
       print(f"ERROR: Gripper command timed out in {timeout_ms} ms. Command aborted.")
@@ -113,6 +111,7 @@ def wait_for_gripper_finished( timeout_ms: int = 5_000):
     
     client.check_msg()
     time.sleep(0.05)
+
 
 def handle_buttons(blocking: bool = True):
   global label_close, label_open, is_close_pressed, is_open_pressed, client, is_gripper_finished
