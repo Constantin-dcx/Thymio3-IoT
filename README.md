@@ -1,6 +1,9 @@
 # Thymio3-IoT
 
-A repository for different projects integrating [M5Stack](https://m5stack.com/) IoT devices with Thymio3.
+A repository for different projects integrating [M5Stack](https://m5stack.com/) IoT devices with Thymio3:
+
+- [Person Tracking](#person-tracking)
+- [Remote Control](#remote-control)
 
 
 ## Global Setup
@@ -109,7 +112,23 @@ ampy put main.py
 
 #### UnitV2
 
-Là c'est plus chaud
+1. Follow the [M5Stack  documentation](https://docs.m5stack.com/en/quick_start/unitv2/config) for setting up SSH and Wi-Fi for the UnitV2.
+
+2. Update the following files to the device via ssh:
+
+```bash
+scp /path/to/Thymio3-IoT/person_tracking/unitV2/server_core.py \
+root@UNITV2_IP_ADDRESS:/home/m5stack/payload/server_core.py
+
+scp /path/to/Thymio3-IoT/person_tracking/unitV2/bin/face_detector \
+root@UNITV2_IP_ADDRESS:/home/m5stack/payload/bin/face_detector
+```
+
+The new firmware will be used when the UnitV2 server is restarted (press 5s on the button at the top of the device).
+
+To compile other function binaries, see [my UnitV2Framework fork](https://github.com/Constantin-dcx/UnitV2Framework).
+
+**Note:** *You may need to remove the existing file from the device before uploading the new one to prevent corrupting it when using **scp**.*
 
 
 ## Remote Control
