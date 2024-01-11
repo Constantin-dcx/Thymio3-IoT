@@ -34,7 +34,7 @@ def setup():
   label_status.setText("Connected!")
   label_status.setCursor(x=45, y=TEXT_HEIGHT)
 
-  gripper = CatchUnit()
+  gripper = CatchUnit(pin=32)
 
 
 def open_gripper():

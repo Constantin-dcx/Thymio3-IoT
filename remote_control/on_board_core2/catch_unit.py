@@ -4,21 +4,21 @@ from machine import Pin, PWM
 
 
 class CatchUnit:
-  SERVO_PIN = 32
   FREQ = 50
   LAST_PULSE_FILE = "servo_position.json"
 
-  def __init__(self, min_pulse: int = 26, max_pulse: int = 90, 
+  def __init__(self, pin: int, min_pulse: int = 26, max_pulse: int = 90, 
                pulse_delay: float = 0.025, step: int = 1, 
                save_file: bool = False) -> None:
     
+    self._pin = pin
     self._min_pulse = min_pulse
     self._max_pulse = max_pulse
     self._pulse_delay = pulse_delay
     self._step = step
     self._save_file = save_file
     self._load_last_pulse()
-    self._servo = PWM(Pin(self.SERVO_PIN), self.FREQ)
+    self._servo = PWM(Pin(self._pin), self.FREQ)
 
     print("CatchUnit initiated.")
 
