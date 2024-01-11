@@ -21,7 +21,6 @@ label_status = None
 client = None
 gripper = None
 
-
 def setup():
   global label_status, gripper
 
@@ -34,7 +33,7 @@ def setup():
   label_status.setText("Connected!")
   label_status.setCursor(x=45, y=TEXT_HEIGHT)
 
-  gripper = CatchUnit(pin=32)
+  gripper = CatchUnit(pin=26, min_pulse=34, max_pulse=90)
 
 
 def open_gripper():
@@ -46,6 +45,7 @@ def open_gripper():
   client.publish(GRIPPER_STATUS, GRIPPER_FINISHED)
   label_status.setText("Open!")
   label_status.setCursor(x=98, y=TEXT_HEIGHT)
+
 
 def close_gripper():
   global gripper, label_status, client
@@ -61,7 +61,6 @@ def close_gripper():
 def mqtt_callback(topic, msg):
 
     topic_str = topic.decode()
-    # print(f"New message on topic '{topic_str}': {msg}")
     
     if topic_str == GRIPPER_ACTION:
       if msg == GRIPPER_CLOSE:
@@ -89,9 +88,8 @@ def loop():
 
   M5.update()
   client.check_msg()
-  
-  time.sleep(REFRESH_TIME)
 
+  time.sleep(REFRESH_TIME)
 
 
 if __name__ == '__main__':
@@ -103,5 +101,4 @@ if __name__ == '__main__':
     from utility import print_error_msg
     print_error_msg(e)
   finally:
-    open_gripper()  # make sure the gripper is opened when restarting
     client.disconnect()

@@ -95,7 +95,7 @@ def mqtt_callback(topic, msg):
       is_gripper_finished = True
 
 
-def wait_for_gripper_finished( timeout_ms: int = 5_000):
+def wait_for_gripper_finished(timeout_ms: int = 5_000):
 
   # Stop Thymio while gripper is moving
   message = {"x": 0.0, "y": 0.0, "z": 0.0}
