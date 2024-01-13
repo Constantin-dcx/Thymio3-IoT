@@ -47,6 +47,11 @@ Once your broker is setup, you can follow the folowing instructions:
 
 ## Person Tracking
 
+<img 
+  src="docs/images/tracking_pic_raw.jpg" 
+  title="Person Tracking Demonstrator" 
+  style="max-width: 300px"/>
+
 This project makes use of the **Face Detector** feature of the M5Stack UnitV2 AI camera and enables Thymio3 to track and follow a person face.
 
 This project requires the following devices:
@@ -133,11 +138,17 @@ To compile other function binaries, see [my UnitV2Framework fork](https://github
 
 ## Remote Control
 
+<img
+  src="docs/images/remote_pic_raw.jpg" 
+  title="Remote Control Demonstrator" 
+  style="max-width: 300px"/>
+
 This project relies on a remote to control the Thymio3 speed and open an on-board gripper.
 
 This project requires the following devices:
 - Thymio3
 - [M5Stack Core2](https://shop.m5stack.com/products/m5stack-core2-esp32-iot-development-kit) x2
+- [M5Stack DinBase](https://docs.m5stack.com/en/base/DIN%20BASE)
 - [M5Stack Catch Unit](https://shop.m5stack.com/products/catch-unit)
 
 ### Installation
@@ -146,7 +157,7 @@ Make sure both Core2 are setup according to [Core2 Setup](#core2-setup).
 
 #### On-board Core2
 
-Connect the first Core2 to your computer and upload the following files to it:
+Connect the DinBase module to the bottom of the first Core2, then plug it into your computer and upload the following files to it:
 
 ```bash
 export AMPY_PORT=/dev/ttyACM0  # Change to your actual port
