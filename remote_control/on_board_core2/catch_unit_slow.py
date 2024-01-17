@@ -3,7 +3,7 @@ import time
 from machine import Pin, PWM
 
 
-class CatchUnit:
+class CatchUnitSlow:
   FREQ = 50
   LAST_PULSE_FILE = "servo_position.json"
 
@@ -20,7 +20,7 @@ class CatchUnit:
     self._load_last_pulse()
     self._servo = PWM(Pin(self._pin), self.FREQ)
 
-    print("CatchUnit initiated.")
+    print("CatchUnitSlow initiated.")
 
   def open(self, delay: int = None, step: int = None):
     print("Opening...")
