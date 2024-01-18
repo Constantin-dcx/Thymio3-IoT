@@ -39,6 +39,8 @@ def setup():
   global label_x, line_x, label_y, line_y, label_z, client, label_close, label_open
 
   M5.begin()
+  M5.Power.setLed(255)  # Turn on LED to notify the Core2 is on
+
   Widgets.fillScreen(BLACK)
 
   # Connect to MQTT

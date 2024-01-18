@@ -25,6 +25,8 @@ def setup():
   global label_status, gripper
 
   M5.begin()
+  M5.Power.setLed(255)  # Turn on LED to notify the Core2 is on
+
   Widgets.fillScreen(BLACK)
 
   label_status = Widgets.Label("Connecting...", 28, TEXT_HEIGHT, 1.0, WHITE, BLACK, Widgets.FONTS.DejaVu40)

@@ -42,6 +42,7 @@ def setup():
     global eyes, unitV2, client
 
     M5.begin()
+    M5.Power.setLed(255)  # Turn on LED to notify the Core2 is on
 
     # Initialize Eyes display
     eyes = Eyes(screen_width = SCREEN_WIDTH, screen_height = SCREEN_HEIGHT, 

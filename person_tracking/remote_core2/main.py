@@ -13,6 +13,7 @@ def setup():
     global client
 
     M5.begin()
+    M5.Power.setLed(255)  # Turn on LED to notify the Core2 is on
 
     # Connect to MQTT
     client = MQTTClient(TRACKING_REMOTE_CLIENT_ID, MQTT_BROKER, MQTT_PORT)
