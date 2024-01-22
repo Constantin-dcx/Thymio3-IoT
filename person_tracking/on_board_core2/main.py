@@ -170,4 +170,5 @@ if __name__ == '__main__':
         from utility import print_error_msg
         print_error_msg(e)
 
+    finally:
         eyes.delete_canvas()
